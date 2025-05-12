@@ -1,11 +1,10 @@
+
+from datetime import datetime
 import pandas as pd
 import requests as rq 
 import pprint
-import sqlite3
 from localidades import estadual
 import ssl
-from Google import Create_Service
-from googleapiclient.http import MediaFileUpload
 import openpyxl
 from ajustar_planilha import ajustar_colunas, ajustar_bordas
 
@@ -14,13 +13,13 @@ tabela5918 = 5918
 tabela6463 = 6463
 tabela6482 = 6482
 
-api_populacao = f'https://servicodados.ibge.gov.br/api/v3/agregados/{tabela1209}/periodos/2022/variaveis/606?{estadual}&classificacao=58[0]'
+api_populacao = f'https://servicodados.ibge.gov.br/api/v3/agregados/1209/periodos/2022/variaveis/606?{estadual}&classificacao=58[0]'
 
-api_anos = f'https://servicodados.ibge.gov.br/api/v3/agregados/5918/periodos/201201|201202|201203|201204|201301|201302|201303|201304|201401|201402|201403|201404|201501|201502|201503|201504|201601|201602|201603|201604|201701|201702|201703|201704|201801|201802|201803|201804|201901|201902|201903|201904|202001|202002|202003|202004|202101|202102|202103|202104|202201|202202|202203|202204|202301|202302|202303|202304/variaveis/606?localidades=N3[all]&classificacao=58[all]'
+api_anos = f'https://servicodados.ibge.gov.br/api/v3/agregados/5918/periodos/201201/variaveis/606?localidades=N3[all]&classificacao=58[40288, 114535, 100052, 108875, 99127, 3302]'
 
-api_trab = f'https://servicodados.ibge.gov.br/api/v3/agregados/6463/periodos/201201|201202|201203|201204|201301|201302|201303|201304|201401|201402|201403|201404|201501|201502|201503|201504|201601|201602|201603|201604|201701|201702|201703|201704|201801|201802|201803|201804|201901|201902|201903|201904|202001|202002|202003|202004|202101|202102|202103|202104|202201|202202|202203|202204|202301|202302|202303|202304/variaveis/1641?{estadual}&classificacao=629[32386,32387,32446,32447]'
+api_trab = f'https://servicodados.ibge.gov.br/api/v3/agregados/6463/periodos/201201/variaveis/1641?{estadual}&classificacao=629[32386,32387,32446,32447]'
     
-api_potencial = f'https://servicodados.ibge.gov.br/api/v3/agregados/6482/periodos/201201|201202|201203|201204|201301|201302|201303|201304|201401|201402|201403|201404|201501|201502|201503|201504|201601|201602|201603|201604|201701|201702|201703|201704|201801|201802|201803|201804|201901|201902|201903|201904|202001|202002|202003|202004|202101|202102|202103|202104|202201|202202|202203|202204|202301|202302|202303|202304/variaveis/1641?{estadual}&classificacao=604[31751,31752,46254]'
+api_potencial = f'https://servicodados.ibge.gov.br/api/v3/agregados/6482/periodos/201201/variaveis/1641?{estadual}&classificacao=604[31751,31752,46254]'
 
 class TLSAdapter(rq.adapters.HTTPAdapter):
     def init_poolmanager(self, *args, **kwargs):
@@ -44,7 +43,10 @@ def requisitando_dados(api):
         dados_brutos = dados_brutos_api.json()
     except Exception as e:
         raise Exception(f"Erro ao analisar a resposta JSON da API: {str(e)}")
-
+    if len(dados_brutos) < 1:
+        dados_brutos = None
+        return dados_brutos
+    
     return dados_brutos
 
 def extrair_dados(api, tabela_id):
@@ -64,7 +66,7 @@ def extrair_dados(api, tabela_id):
             variavel1641 = dados_brutos[0]
             return variavel1641
     else:
-        pass
+        return None
     
 def tratando_dados1209(variavel1209):
     dados_limpos_1209 = []
@@ -111,74 +113,163 @@ def tratando_dados1209(variavel1209):
 def tratando_dados(variavel):
     dados_limpos = []
 
-    
+    # Extraindo informações da variável
     id_tabela = variavel['id']
     variavele = variavel['variavel']
     unidade = variavel['unidade']
     dados = variavel['resultados']
-    
-    for ii in dados:
-        dados_produto = ii['classificacoes']
-        dados_producao = ii['series']
 
-        for iii in dados_produto:
-            dados_id_produto = iii['categoria']
+    for item in dados:
+        dados_produto = item['classificacoes']
+        dados_producao = item['series']
+        for classificacao in dados_produto:
+            dados_id_produto = classificacao['categoria']
 
             for id_produto, nome_produto in dados_id_produto.items():
-
-                for iv in dados_producao:
-                    id = iv['localidade']['id']
-                    local = iv['localidade']['nome']
-                    dados_ano_producao = iv['serie']
-                    
+                for serie in dados_producao:
+                    id_localidade = serie['localidade']['id']
+                    local = serie['localidade']['nome']
+                    dados_ano_producao = serie['serie']
 
                     for ano, producao in dados_ano_producao.items():
                         producao = producao.replace('-', '0').replace('...', '0')
-                        
+
                         partes = ano.split("/")
                         ano_sem_trimestre = int(partes[0][:4])
                         trimestre = int(partes[0][4:6]) 
-                        
-                        dict = {
-                            'id': id,
+
+                        # Criando o dicionário com os dados tratados
+                        dados_limpos.append({
+                            'id': id_localidade,
                             'local': local,
-                            #'id_produto': id_produto,
                             'Categoria': nome_produto,
                             variavele: producao,
                             'unidade': unidade,
                             'ano': f'01/01/{ano_sem_trimestre}',
                             'Trimestre': trimestre,
-                            'AnoSedec': f'01/{trimestre * 3}/{ano_sem_trimestre}'
-                        }
+                            'AnoSedec': f"01/{trimestre * 3 if trimestre * 3 == 12 else f'0{trimestre * 3}'}/{ano_sem_trimestre}"
 
-                        dados_limpos.append(dict)
-    return dados_limpos 
+                        })
 
-def executando_funcoes():
-    variavel1209 = extrair_dados(api_populacao, tabela1209)
-    variavel5918 = extrair_dados(api_anos, tabela5918)
-    variavel6463 = extrair_dados(api_trab, tabela6463)
-    varaivel6482 = extrair_dados(api_potencial, tabela6482)
+    return dados_limpos
+
+def tratando_dados_taxa(variavel):
+    dados_limpos = []
+    seen = set()  # Usar um set para rastrear entradas únicas
     
-    dados_limpos_1209 = tratando_dados1209(variavel1209)
-    dados_limpos_5918 = tratando_dados(variavel5918)
-    dados_limpos_6463 = tratando_dados(variavel6463)
-    dados_limpos_6482 = tratando_dados(varaivel6482)
-    
-    return dados_limpos_1209, dados_limpos_5918, dados_limpos_6463, dados_limpos_6482
-    
+    id_tabela = variavel['id']
+    variavele = variavel['variavel']
+    unidade = variavel['unidade']
+    dados = variavel['resultados']
+
+    for item in dados:
+        dados_producao = item['series']
+        for classificacao in dados_producao:
+            dados_id_produto = classificacao['serie']
+
+            for serie in dados_producao:
+                id_localidade = serie['localidade']['id']
+                local = serie['localidade']['nome']
+                dados_ano_producao = serie['serie']
+
+                for ano, producao in dados_ano_producao.items():
+                    producao = producao.replace('-', '0').replace('...', '0')
+
+                    partes = ano.split("/")
+                    ano_sem_trimestre = int(partes[0][:4])
+                    trimestre = int(partes[0][4:6])
+                    mes = f"0{trimestre * 3}" if trimestre * 3 < 10 else trimestre * 3
+                    
+                    entrada_unica = (id_localidade, ano_sem_trimestre, trimestre)
+                    if entrada_unica not in seen:
+                        seen.add(entrada_unica)  
+                        dados_limpos.append({
+                            'id': id_localidade,
+                            'local': local,
+                            variavele: producao,
+                            'unidade': unidade,
+                            'ano': f'01/01/{ano_sem_trimestre}',
+                            'Trimestre': trimestre,
+                            'AnoSedec': f'01/{mes}/{ano_sem_trimestre}'
+                        })
+
+    return dados_limpos
+
+ano_atual = int(datetime.now().year)
+
+def executando_funcoes(tabela):
+    lista_dados1209 = []
+    lista_dados5918 = []
+    lista_dados6463 = []
+    lista_dados6482 = []
+
+    for ano in range(2020, ano_atual+1):  
+        if tabela == '1209':
+            api_populacao = f'https://servicodados.ibge.gov.br/api/v3/agregados/1209/periodos/{ano}/variaveis/606?localidades=N3[all]&classificacao=58[0]'
+            variavel1209 = extrair_dados(api_populacao, tabela1209)
+            if variavel1209 is None:
+                continue  
+            lista_dados1209.extend(tratando_dados1209(variavel1209))
+        for tri in range(1, 5):  
+            if tabela == '5918':
+                api_anos = f'https://servicodados.ibge.gov.br/api/v3/agregados/5918/periodos/{ano}0{tri}/variaveis/606?localidades=N3[all]&classificacao=58[all]'
+                variavel5918 = extrair_dados(api_anos, tabela5918)
+                if variavel5918 is None:
+                    continue
+                lista_dados5918.extend(tratando_dados(variavel5918))
+                
+            elif tabela == '6463':
+                api_trab = f'https://servicodados.ibge.gov.br/api/v3/agregados/6463/periodos/{ano}0{tri}/variaveis/1641?localidades=N3[all]&classificacao=629[32386,32387,32446,32447]'
+                variavel6463 = extrair_dados(api_trab, tabela6463)
+                if variavel6463 is None:
+                    continue
+                lista_dados6463.extend(tratando_dados(variavel6463))
+
+            elif tabela == '6482':  
+                api_potencial = f'https://servicodados.ibge.gov.br/api/v3/agregados/6482/periodos/{ano}0{tri}/variaveis/1641?localidades=N3[all]&classificacao=604[31751,31752,46254]'
+                variavel6482 = extrair_dados(api_potencial, tabela6482)
+                if variavel6482 is None:
+                    continue
+                lista_dados6482.extend(tratando_dados(variavel6482))
+
+    if tabela == '1209':
+        return lista_dados1209
+    elif tabela == '5918':
+        return lista_dados5918
+    elif tabela == '6463':
+        return lista_dados6463
+    elif tabela == '6482':
+        return lista_dados6482
+    else:
+        raise ValueError("Tabela desconhecida fornecida")
+
+
+def executando_estadual():
+    lista_dados_8529 = [] 
+    for ano in range(2020, ano_atual+1):
+        for tri in range(1, 5):
+            api_estadual = f'https://servicodados.ibge.gov.br/api/v3/agregados/8529/periodos/{ano}0{tri}/variaveis/12466?localidades=N3[all]'     
+            variavel_8529estadual = requisitando_dados(api_estadual)
+
+            if not variavel_8529estadual:
+                print(f"A API retornou dados vazios para o ano {ano} e trimestre {tri}.")
+                continue  
+                
+            variavel = variavel_8529estadual[0] 
+            novos_dados_8529 = tratando_dados_taxa(variavel)
+            lista_dados_8529.extend(novos_dados_8529)
+
+    return lista_dados_8529
+
+
 def gerando_dataframe(dados_limpos_1209, dados_limpos_5918, dados_limpos_6463, dados_limpos_6482):
     df1209 = pd.DataFrame(dados_limpos_1209)
     df5918 = pd.DataFrame(dados_limpos_5918)
     df6463 = pd.DataFrame(dados_limpos_6463)
     df6482 = pd.DataFrame(dados_limpos_6482)
     
-    
-    # df1209['População'] = df1209['População'].astype(float)
     df5918['População'] = df5918['População'].astype(float)
-    # df6463['Pessoas de 14 anos ou mais de idade'] = df6463['Pessoas de 14 anos ou mais de idade'].astype(float)
-    # df6482['Pessoas de 14 anos ou mais de idade'] = df6463['Pessoas de 14 anos ou mais de idade'].astype(float)
-    
+
     
     df5918['População'] = df5918['População'] 
     df6463['Pessoas de 14 anos ou mais de idade'] = df6463['Pessoas de 14 anos ou mais de idade'] 
@@ -191,20 +282,8 @@ def gerando_dataframe(dados_limpos_1209, dados_limpos_5918, dados_limpos_6463, d
     for linhas, mover in zip(lista_5918, lista_mover5918):
         df5918.loc[linhas, mover] = df5918.loc[linhas, 'População']
     
-    colunas_5918m = ['14 a 17 anos', '18 a 24 anos', '25 a 39 anos', '40 a 59 anos', '60 anos ou mais']
-    source_range = [(1297, 2592), (2593, 3888), (3889, 5184), (5185, 6480), (6481, 7776)]
-    destination_range = (1, 49) 
-    for source_range, column_to_move in zip(source_range, colunas_5918m):
-            source_values = df5918.loc[source_range[0]-1:source_range[1]-1, column_to_move]
-            destination_range_end = destination_range[0] + (source_range[1] - source_range[0])
-            df5918.loc[destination_range[0]-1:destination_range_end-1, column_to_move] = source_values.values
-    
-    del df5918['Categoria']
-    del df5918['População']
-    for i in range(1296, 7776):
-        df5918.drop(index=i, inplace=True) 
-    
-    
+    df5918 = df5918.pivot_table(index=['id', 'local', 'ano', 'Trimestre', 'AnoSedec', 'unidade'], columns='Categoria', values='População', aggfunc='first')
+    df5918 = df5918.reset_index()
     df5918['Pessoas que podem trabalhar'] = None
     df5918['Pessoas que podem trabalhar'] = df5918['14 a 17 anos'] + df5918['18 a 24 anos'] + df5918['25 a 39 anos'] + df5918['40 a 59 anos'] + df5918['60 anos ou mais']
     
@@ -214,46 +293,43 @@ def gerando_dataframe(dados_limpos_1209, dados_limpos_5918, dados_limpos_6463, d
     df6463.loc[linhas_6463_O, 'Ocupado'] = df6463.loc[linhas_6463_O, 'Pessoas de 14 anos ou mais de idade']
     df6463.loc[linhas_6463_DO, 'Desocupado'] = df6463.loc[linhas_6463_DO, 'Pessoas de 14 anos ou mais de idade']
     df6463.loc[linhas_6463_FF, 'Fora da Força de trabalho'] = df6463.loc[linhas_6463_FF, 'Pessoas de 14 anos ou mais de idade']
-    source_range = [(1297, 2592), (2593, 3888), (3889, 5184)]
-    lista_colunasmudar = ['Ocupado', 'Desocupado', 'Fora da Força de trabalho']
-    destination_range = (1, 49) 
-    for source_range, column_to_move in zip(source_range, lista_colunasmudar):
-            source_values = df6463.loc[source_range[0]-1:source_range[1]-1, column_to_move]
-            destination_range_end = destination_range[0] + (source_range[1] - source_range[0])
-            df6463.loc[destination_range[0]-1:destination_range_end-1, column_to_move] = source_values.values
+    df6463['Categoria'] = df6463['Categoria'].replace({'Força de trabalho - ocupada': 'Ocupado','Força de trabalho - desocupada': 'Desocupado'})
     
-    for i in range(1296, 5184):
-        df6463.drop(index=i, inplace=True) 
-    del df6463['Categoria']
-    del df6463['Pessoas de 14 anos ou mais de idade']
+    df6463 = df6463.pivot_table(index=['id', 'local', 'ano', 'Trimestre', 'AnoSedec', 'unidade'], columns='Categoria', values='Pessoas de 14 anos ou mais de idade', aggfunc='first')
+    df6463 = df6463.reset_index()
+
+    
     df6482[['Subocupado por insuficiência de horas trabalhadas', 'Força de trabalho potencial', 'Desalentado']] = None
     linhas_6482_H, linhas_6482_FF, linhas_6482_DE =  slice(0, 1295), slice(1296, 2591), slice(2592, 3887)
     df6482['Subocupado por insuficiência de horas trabalhadas'] = df6482.loc[linhas_6482_H, 'Pessoas de 14 anos ou mais de idade']
     df6482['Força de trabalho potencial'] = df6482.loc[linhas_6482_FF, 'Pessoas de 14 anos ou mais de idade']
     df6482['Desalentado'] = df6482.loc[linhas_6482_DE, 'Pessoas de 14 anos ou mais de idade']
-    source_range2 = [(1297, 2592), (2593, 3888)]
-    lista_muda6482 = ['Força de trabalho potencial', 'Desalentado']
-    destination_range = (1, 49) 
-    for source_range, column_to_move in zip(source_range2, lista_muda6482):
-            source_values = df6482.loc[source_range[0]-1:source_range[1]-1, column_to_move]
-            destination_range_end = destination_range[0] + (source_range[1] - source_range[0])
-            df6482.loc[destination_range[0]-1:destination_range_end-1, column_to_move] = source_values.values
-
-    for i in range(1296, 3888):
-        df6482.drop(index=i, inplace=True) 
-    del df6482['Categoria']
-    del df6482['Pessoas de 14 anos ou mais de idade']
+    
+    df6482 = df6482.pivot_table(index=['id', 'local', 'ano', 'Trimestre', 'AnoSedec', 'unidade'], columns='Categoria', values='Pessoas de 14 anos ou mais de idade', aggfunc='first')
+    df6482['Desalentado'] = df6482['Desalentado']
+    df6482 = df6482.reset_index()
 
     return df1209, df5918, df6463, df6482
 
 pp = pprint.PrettyPrinter(indent=4)
-dados_limpos_1209, dados_limpos_5918, dados_limpos_6463, dados_limpos_6482 = executando_funcoes()
+dados_limpos_1209 = executando_funcoes('1209')
+dados_limpos_5918 = executando_funcoes('5918')
+dados_limpos_6463 = executando_funcoes('6463')
+dados_limpos_6482 = executando_funcoes('6482')
 dataframe1209, dataframe5918, dataframe6463, dataframe6482 = gerando_dataframe(dados_limpos_1209, dados_limpos_5918, dados_limpos_6463, dados_limpos_6482)
 dftrab_estadual = pd.merge(dataframe6463, dataframe6482, on=['id', 'local','unidade', 'ano', 'Trimestre', 'AnoSedec'], how='inner')
+dftrab_estadual['AnoSedec'] = pd.to_datetime(dftrab_estadual['AnoSedec'], format='%d/%m/%Y')
 
+dados_limpos_8520 = executando_estadual()
+df_taxa = pd.DataFrame(dados_limpos_8520)
+dataframe5918['AnoSedec'] = pd.to_datetime(dataframe5918['AnoSedec'], format='%d/%m/%Y')
+
+
+df_taxa.to_excel('C:\\Users\\LucasFreitas\\Documents\\Lucas Freitas Arquivos\\DATAHUB\\DADOS\\PNAD\\Planilhas\\taxa.xlsx', index=False)
 dataframe1209.to_excel('C:\\Users\\LucasFreitas\\Documents\\Lucas Freitas Arquivos\\DATAHUB\\DADOS\\PNAD\\Planilhas\\População ESTADUAL.xlsx', index=False)
 dataframe5918.to_excel('C:\\Users\\LucasFreitas\\Documents\\Lucas Freitas Arquivos\\DATAHUB\\DADOS\\PNAD\\Planilhas\\Idade ESTADUAL.xlsx', index=False)
 dftrab_estadual.to_excel('C:\\Users\\LucasFreitas\\Documents\\Lucas Freitas Arquivos\\DATAHUB\\DADOS\\PNAD\\Planilhas\\Trabalho ESTADUAL.xlsx', index=False)
+
 
 planilha_principal = openpyxl.Workbook()
 

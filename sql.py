@@ -1,5 +1,5 @@
 import psycopg2
-from ETL_PNAD_ESTADUAL import dataframe1209, dataframe5918, dftrab_estadual
+from ETL_PNAD_ESTADUAL import dataframe1209, dataframe5918, dftrab_estadual, df_taxa
 from ETL_PNAD_NACIONAL import dfpop
 from conexão import conexao
 
@@ -67,12 +67,26 @@ def executar_sql():
         "Força de trabalho potencial" INTEGER,
         Desalentado INTEGER);
     '''
+    pnad_taxa = \
+    '''
+    CREATE TABLE IF NOT EXISTS pnad.taxa (
+        id_taxa SERIAL PRIMARY KEY,
+        id INTEGER,
+        local TEXT,
+        ano DATE,
+        Trimestre INTEGER,
+        AnoSedec DATE,
+        taxa_informal NUMERIC,
+        unidade CHAR(1)
+        );
+    '''
 
 
     cur.execute(pnad_populacao_geral)
     cur.execute(pnad_populacao_estadual)
     cur.execute(pnad_populacao_apta_trabalhar)
     cur.execute(pnad_populacao_relaçao_forca)
+    cur.execute(pnad_taxa)
 
     verificando_existencia_pnad_populacao_geral = '''
     SELECT 1
@@ -94,6 +108,11 @@ def executar_sql():
     FROM information_schema.tables
     WHERE table_schema= 'pnad' AND table_type='BASE TABLE' AND table_name='relacao_forca_trabalho';
     '''
+    verificando_existencia_pnad_taxa = '''
+    SELECT 1
+    FROM information_schema.tables
+    WHERE table_schema= 'pnad' AND table_type='BASE TABLE' AND table_name='taxa';
+    '''
 
     # Execute as consultas de verificação
     cur.execute(verificando_existencia_pnad_populacao_geral)
@@ -105,6 +124,10 @@ def executar_sql():
     resultado_pnad_pessoas_aptas_trabalho = cur.fetchone()
     cur.execute(verificando_existencia_pnad_relacao_forca_trabalho)
     resultado_pnad_relacao_forca_trabalho = cur.fetchone()
+    cur.execute(verificando_existencia_pnad_relacao_forca_trabalho)
+    resultado_pnad_relacao_forca_trabalho = cur.fetchone()
+    cur.execute(verificando_existencia_pnad_taxa)
+    resultado_pnad_taxa= cur.fetchone()
     
     # Verifique se as tabelas existem e exclua, se necessário
     if resultado_pnad_pop_geral[0] == 1:
@@ -130,6 +153,12 @@ def executar_sql():
         TRUNCATE TABLE pnad.relacao_forca_trabalho;
         '''
         cur.execute(dropando_tabela_relacao_forca_trabalho)
+        
+    if resultado_pnad_taxa[0] == 1:
+        dropando_tabela_taxa = '''
+        TRUNCATE TABLE pnad.taxa;
+        '''
+        cur.execute(dropando_tabela_taxa)
 
     #INSERINDO DADOS
     inserindo_pnad_geral = \
@@ -171,10 +200,10 @@ def executar_sql():
         print(f"Erro ao inserir dados estadual: {e}")
         
     inserindo_pnad_pessoas_aptas_trabalho = \
-    '''
-    INSERT INTO pnad.pessoas_aptas_trabalho (id, local, unidade, ano, Trimestre, AnoSedec, "0 a 13 anos", "14 a 17 anos", "18 a 24 anos", "25 a 39 anos", "40 a 59 anos", "60 anos ou mais", "Pessoas que podem trabalhar")
-    VALUES(%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s) 
-    '''
+        '''
+        INSERT INTO pnad.pessoas_aptas_trabalho (id, local, unidade, ano, Trimestre, AnoSedec, "0 a 13 anos", "14 a 17 anos", "18 a 24 anos", "25 a 39 anos", "40 a 59 anos", "60 anos ou mais", "Pessoas que podem trabalhar")
+        VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+        '''
     try:
         for idx, i in dataframe5918.iterrows():
             dados = (
@@ -194,8 +223,8 @@ def executar_sql():
             )
             cur.execute(inserindo_pnad_pessoas_aptas_trabalho, dados)
     except psycopg2.Error as e:
-        print(f"Erro ao inserir dados aptas ao trabalho: {e}")
-        
+        print(f"Erro ao inserir dados aptos ao trabalho: {e}")
+
     inserindo_pnad_relacao_forca_trabalho= \
     '''
     INSERT INTO pnad.relacao_forca_trabalho (id, local, unidade, ano, Trimestre, AnoSedec, "Força de trabalho", Ocupado, Desocupado, "Fora da Força de trabalho", "Subocupado por insuficiência de horas trabalhadas", 
@@ -214,12 +243,39 @@ def executar_sql():
                 i['Força de trabalho'],
                 i['Ocupado'],
                 i['Desocupado'],
-                i['Fora da Força de trabalho'],
+                i['Fora da força de trabalho'],
                 i['Subocupado por insuficiência de horas trabalhadas'],
                 i['Força de trabalho potencial'],
                 i['Desalentado']
             )
             cur.execute(inserindo_pnad_relacao_forca_trabalho, dados)
+    except psycopg2.Error as e:
+        print(f"Erro ao inserir dados forca trabalho: {e}")
+        
+    inserindo_pnad_taxa = '''
+        INSERT INTO pnad.taxa (
+            id, 
+            local, 
+            taxa_informal, 
+            unidade, 
+            ano, 
+            Trimestre, 
+            AnoSedec
+        ) VALUES (%s, %s, %s, %s, %s, %s, %s)
+    '''
+
+    try:
+        for idx, i in df_taxa.iterrows():
+            dados = (
+                i['id'],
+                i['local'],
+                i['Taxa de informalidade das pessoas de 14 anos ou mais de idade ocupadas na semana de referência'],  
+                i['unidade'],
+                i['ano'],
+                i['Trimestre'],
+                i['AnoSedec']
+            )
+            cur.execute(inserindo_pnad_taxa, dados)
     except psycopg2.Error as e:
         print(f"Erro ao inserir dados forca trabalho: {e}")
         

@@ -1,3 +1,4 @@
+from datetime import datetime
 import pandas as pd
 import requests as rq 
 import pprint
@@ -60,7 +61,10 @@ def requisitando_dados(api):
         dados_brutos = dados_brutos_api.json()
     except Exception as e:
         raise Exception(f"Erro ao analisar a resposta JSON da API: {str(e)}")
-
+    if len(dados_brutos) < 1:
+        dados_brutos = None
+        return dados_brutos
+    
     return dados_brutos
 
 def extrair_dados(api, tabela_id):
@@ -92,7 +96,30 @@ def extrair_dados(api, tabela_id):
             variavel4094 = dados_brutos[0]
             return variavel4094
     else:
-        pass
+        for tabelas in lista_tabela:
+            if tabela_id == tabelas:
+                variavel = None
+                return variavel
+        if tabela_id == 4093 or tabela_id == 4094 or tabela_id == 6402:
+            variavel1641 = None
+            variavel4088 = None
+            variavel4090 = None
+            variavel4092 = None
+            variavel4094 = None
+            return variavel1641, variavel4088, variavel4090, variavel4092, variavel4094
+        elif tabela_id == 4095:
+            variavel1641 = None
+            variavel4088 = None
+            variavel4090 = None
+            variavel4092 = None
+            return variavel1641, variavel4088, variavel4090, variavel4092
+        elif tabela_id == 6398 or tabela_id == 6399:
+            variavel8344 = None
+            variavel8346 = None
+            return variavel8344, variavel8346
+        elif tabela_id == 40952:
+            variavel4094 = None
+            return variavel4094
         
 def tratando_dados(variavel):
     dados_limpos = []
@@ -133,7 +160,8 @@ def tratando_dados(variavel):
                             'unidade': unidade,
                             'ano': f'01/01/{ano_sem_trimestre}',
                             'Trimestre': trimestre,
-                            'AnoSedec': f'01/{trimestre * 3}/{ano_sem_trimestre}'
+                            'AnoSedec': f"01/{trimestre * 3 if trimestre * 3 == 12 else f'0{trimestre * 3}'}/{ano_sem_trimestre}"
+
                         }
 
                         dados_limpos.append(dict)
@@ -184,7 +212,8 @@ def tratando_dados_cinco(variavel1641, variavel4088, variavel4090, variavel4092,
                                 'unidade': unidade,
                                 'ano': f'01/01/{ano_sem_trimestre}',
                                 'Trimestre': trimestre,
-                                'AnoSedec': f'01/{trimestre * 3}/{ano_sem_trimestre}'
+                                'AnoSedec': f"01/{trimestre * 3 if trimestre * 3 == 12 else f'0{trimestre * 3}'}/{ano_sem_trimestre}"
+
                             }
                             if id_tabela == '1641':
                                 dados_limpos1641.append(dict)
@@ -243,7 +272,8 @@ def tratando_dados_quatro(variavel4088, variavel4090, variavel4092, variavel4094
                                 'unidade': unidade,
                                 'ano': f'01/01/{ano_sem_trimestre}',
                                 'Trimestre': trimestre,
-                                'AnoSedec': f'01/{trimestre * 3}/{ano_sem_trimestre}'
+                                'AnoSedec': f"01/{trimestre * 3 if trimestre * 3 == 12 else f'0{trimestre * 3}'}/{ano_sem_trimestre}"
+
                             }
                             
                             if id_tabela == '4088':
@@ -302,7 +332,8 @@ def tratando_dados_especial(variavel1641, variavel4088, variavel4090, variavel40
                                 'unidade': unidade,
                                 'ano': f'01/01/{ano_sem_trimestre}',
                                 'Trimestre': trimestre,
-                                'AnoSedec': f'01/{trimestre * 3}/{ano_sem_trimestre}'
+                                'AnoSedec': f"01/{trimestre * 3 if trimestre * 3 == 12 else f'0{trimestre * 3}'}/{ano_sem_trimestre}"
+
                             }
                             
                             if id_tabela == '1641':
@@ -359,7 +390,8 @@ def tratando_dados_dois(variavel8344, variave8346):
                                 'unidade': unidade,
                                 'ano': f'01/01/{ano_sem_trimestre}',
                                 'Trimestre': trimestre,
-                                'AnoSedec': f'01/{trimestre * 3}/{ano_sem_trimestre}'
+                                'AnoSedec': f"01/{trimestre * 3 if trimestre * 3 == 12 else f'0{trimestre * 3}'}/{ano_sem_trimestre}"
+
                             }
                             
                             if id_tabela == '8344':
@@ -368,65 +400,182 @@ def tratando_dados_dois(variavel8344, variave8346):
                                 dados_limpos8346.append(dict)
 
     return dados_limpos8344, dados_limpos8346
+ano_atual = int(datetime.now().year)
 
-def executando_funcoes():
-    variavel_pop_sexo = extrair_dados(api_populacao_sexo, tabela5917)
-    variavel_trab_sexo_1641, variavel_trab_sexo_4088, variavel_trab_sexo_4090, variavel_trab_sexo_4092, variavel_trab_sexo_4094 = extrair_dados(api_trab_sexo, tabela4093)
-    variavel_forca_sexo_8344, variavel_forca_sexo_8346 = extrair_dados(api_forca_sexo, tabela6398)
+def executando_funcoes(tipo):
+    # Inicializando listas para cada tipo
+    if tipo == 'sexo':
+        dados_pop = []
+        dados_trab_1641 = []
+        dados_trab_4088 = []
+        dados_trab_4090 = []
+        dados_trab_4092 = []
+        dados_trab_4094 = []
+        dados_forca_8344 = []
+        dados_forca_8346 = []
+
+    elif tipo == 'idade':
+        dados_pop = []
+        dados_1641 = []
+        dados_4088 = []
+        dados_4090 = []
+        dados_4092 = []
+        dados_4094 = []
+        dados_8344 = []
+        dados_8346 = []
+
+    elif tipo == 'raca':
+        dados_pop = []
+        dados_1641 = []
+        dados_4088 = []
+        dados_4090 = []
+        dados_4092 = []
+        dados_4094 = []
+
+    elif tipo == 'alfab':
+        dados_pop = []
+        dados_1641 = []
+        dados_4088 = []
+        dados_4090 = []
+        dados_4092 = []
+        dados_4094 = []
+
+    for ano in range(2015, ano_atual):
+        for tri in range(1, 5):
+
+            if tipo == 'sexo':
+                api_populacao_sexo = f'https://servicodados.ibge.gov.br/api/v3/agregados/5917/periodos/{ano}0{tri}/variaveis/606?{estadual}&classificacao=2[4,5]'
+                api_trab_sexo = f'https://servicodados.ibge.gov.br/api/v3/agregados/4093/periodos/{ano}0{tri}/variaveis/1641|4088|4090|4092|4094?localidades=N3[all]&classificacao=2[4,5]'
+                api_forca_sexo = f'https://servicodados.ibge.gov.br/api/v3/agregados/6398/periodos/{ano}0{tri}/variaveis/8344|8346?localidades=N3[all]&classificacao=2[4,5]'
+
+                vpop = extrair_dados(api_populacao_sexo, tabela5917)
+                v1641, v4088, v4090, v4092, v4094 = extrair_dados(api_trab_sexo, tabela4093)
+                v8344, v8346 = extrair_dados(api_forca_sexo, tabela6398)
+
+                if not vpop or not v1641 or not v4088 or not v4090 or not v4092 or not v4094 or not v8344 or not v8346:
+                    continue  # Se algum dado estiver vazio, pula para a próxima iteração.
+
+                dados_pop.append(tratando_dados(vpop))
+                d1641, d4088, d4090, d4092, d4094 = tratando_dados_cinco(v1641, v4088, v4090, v4092, v4094)
+                f8344, f8346 = tratando_dados_dois(v8344, v8346)
+
+                dados_trab_1641.append(d1641)
+                dados_trab_4088.append(d4088)
+                dados_trab_4090.append(d4090)
+                dados_trab_4092.append(d4092)
+                dados_trab_4094.append(d4094)
+                dados_forca_8344.append(f8344)
+                dados_forca_8346.append(f8346)
+
+            elif tipo == 'idade':
+                api_populacao_idade = f'https://servicodados.ibge.gov.br/api/v3/agregados/5918/periodos/{ano}0{tri}/variaveis/606?localidades=N3[all]&classificacao=58[95253,114535,100052,108875,99127,3302]'
+                api_anos_idade = f'https://servicodados.ibge.gov.br/api/v3/agregados/{tabela4094}/periodos/{ano}0{tri}/variaveis/1641|4088|4090|4092|4094?{estadual}&classificacao=58[114535,100052,108875,99127,3302]'
+                api_trab_idade = f'https://servicodados.ibge.gov.br/api/v3/agregados/{tabela6399}/periodos/{ano}0{tri}/variaveis/8344|8346?{estadual}&classificacao=58[114535,100052,108875,99127,3302]'
+
+                vpop = extrair_dados(api_populacao_idade, tabela5918)
+                v1641, v4088, v4090, v4092, v4094 = extrair_dados(api_anos_idade, tabela4094)
+                v8344, v8346 = extrair_dados(api_trab_idade, tabela6399)
+
+                if vpop is None or v1641  is None or v4088  is None or v4090  is None or v4092  is None or v4094  is None or v8344  is None or v8346  is None:
+                    continue  # Se algum dado estiver vazio, pula para a próxima iteração.
+
+                dados_pop.append(tratando_dados(vpop))
+                d1641, d4088, d4090, d4092, d4094 = tratando_dados_cinco(v1641, v4088, v4090, v4092, v4094)
+                f8344, f8346 = tratando_dados_dois(v8344, v8346)
+
+                dados_1641.append(d1641)
+                dados_4088.append(d4088)
+                dados_4090.append(d4090)
+                dados_4092.append(d4092)
+                dados_4094.append(d4094)
+                dados_8344.append(f8344)
+                dados_8346.append(f8346)
+
+            elif tipo == 'raca':
+                api_populacao_raca = f'https://servicodados.ibge.gov.br/api/v3/agregados/{tabela6403}/periodos/{ano}0{tri}/variaveis/606?{estadual}&classificacao=86[2776,2777,2779]'
+                api_trab_raca = f'https://servicodados.ibge.gov.br/api/v3/agregados/6402/periodos/{ano}0{tri}/variaveis/1641|4088|4090|4092|4094?localidades=N3[all]&classificacao=86[2776,2777,2779]'
+
+                vpop = extrair_dados(api_populacao_raca, tabela6403)
+                v1641, v4088, v4090, v4092, v4094 = extrair_dados(api_trab_raca, tabela6402)
+
+                if not vpop or not v1641 or not v4088 or not v4090 or not v4092 or not v4094:
+                    continue  # Se algum dado estiver vazio, pula para a próxima iteração.
+
+                dados_pop.append(tratando_dados(vpop))
+                d1641, d4088, d4090, d4092, d4094 = tratando_dados_cinco(v1641, v4088, v4090, v4092, v4094)
+
+                dados_1641.append(d1641)
+                dados_4088.append(d4088)
+                dados_4090.append(d4090)
+                dados_4092.append(d4092)
+                dados_4094.append(d4094)
+
+            elif tipo == 'alfab':
+                api_populacao_alfab = f'https://servicodados.ibge.gov.br/api/v3/agregados/{tabela5919}/periodos/{ano}0{tri}/variaveis/606?{estadual}&classificacao=1568[120706,11779,11628,11629,11630,11631,11632,11626]'
+                api_trab_alfab = f'https://servicodados.ibge.gov.br/api/v3/agregados/4095/periodos/{ano}0{tri}/variaveis/1641|4088|4090|4092?{estadual}&classificacao=1568[120706,11779,11628,11629,11630,11631,11632,11626]'
+                api_trab2_alfab = f'https://servicodados.ibge.gov.br/api/v3/agregados/4095/periodos/{ano}0{tri}/variaveis/4094?localidades=N3[all]&classificacao=1568[120706,11779,11628,11629,11630,11631,11632,11626]'
+
+                vpop = extrair_dados(api_populacao_alfab, tabela5919)
+                v1641, v4088, v4090, v4092 = extrair_dados(api_trab_alfab, tabela4095)
+                v4094 = extrair_dados(api_trab2_alfab, tabelaespecial)
+
+                if not vpop or not v1641 or not v4088 or not v4090 or not v4092 or not v4094:
+                    continue  # Se algum dado estiver vazio, pula para a próxima iteração.
+
+                dados_pop.append(tratando_dados(vpop))
+                d1641, d4088, d4090, d4092 = tratando_dados_especial(v1641, v4088, v4090, v4092)
+                d4094 = tratando_dados(v4094)
+
+                dados_1641.append(d1641)
+                dados_4088.append(d4088)
+                dados_4090.append(d4090)
+                dados_4092.append(d4092)
+                dados_4094.append(d4094)
+
+    # Retornos organizados
+    if tipo == 'sexo':
+        return dados_pop, dados_trab_1641, dados_trab_4088, dados_trab_4090, dados_trab_4092, dados_trab_4094, dados_forca_8344, dados_forca_8346
+    elif tipo == 'idade':
+        return dados_pop, dados_1641, dados_4088, dados_4090, dados_4092, dados_4094, dados_8344, dados_8346
+    elif tipo == 'raca':
+        return dados_pop, dados_1641, dados_4088, dados_4090, dados_4092, dados_4094
+    elif tipo == 'alfab':
+        return dados_pop, dados_1641, dados_4088, dados_4090, dados_4092, dados_4094
+
     
-    variavel_pop_idade = extrair_dados(api_populacao_idade, tabela5918)
-    variavel_anos_idade_1641, variavel_anos_idade_4088, variavel_anos_idade_4090, variavel_anos_idade_4092, variavel_anos_sexo_4094 = extrair_dados(api_anos_idade, tabela4094)
-    variavel_trab_idade_8344,  variavel_trab_idade_8346 = extrair_dados(api_trab_idade, tabela6399)
-    
-    variavel_pop_raca = extrair_dados(api_populacao_raca, tabela6403)
-    variavel_trab_raca_1641, variavel_trab_raca_4088, variavel_trab_raca_4090, variavel_trab_raca_4092, variavel_trab_raca_4094 = extrair_dados(api_trab_raca, tabela6402)
-    
-    variavel_pop_alfab = extrair_dados(api_populacao_alfab, tabela5919)
-    variavel_trab_alfab_1641, variavel_trab_alfab_4088, variavel_trab_alfab_4090, variavel_trab_alfab_4092 = extrair_dados(api_trab_alfab, tabela4095)
-    variavel_trab_alfab_4094 = extrair_dados(api_trab2_alfab, tabelaespecial)
-    
-    dados_limpos_pop_sexo = tratando_dados(variavel_pop_sexo)
-    dados_limpos1641_trab_sexo,  dados_limpos4088_trab_sexo, dados_limpos4090_trab_sexo, dados_limpos4092_trab_sexo, dados_limpos4094_trab_sexo = tratando_dados_cinco(variavel_trab_sexo_1641, variavel_trab_sexo_4088, variavel_trab_sexo_4090, variavel_trab_sexo_4092, variavel_trab_sexo_4094)
-    dados_limpos8344_forca_sexo, dados_limpos8346_forca_sexo = tratando_dados_dois(variavel_forca_sexo_8344, variavel_forca_sexo_8346)
-    
-    dados_limpos_pop_idade = tratando_dados(variavel_pop_idade)
-    dados_limpos1641_anos_idade,  dados_limpos4088_anos_idade, dados_limpos4090_anos_idade, dados_limpos4092_anos_idade, dados_limpos4094_anos_idade = tratando_dados_cinco(variavel_anos_idade_1641, variavel_anos_idade_4088, variavel_anos_idade_4090, variavel_anos_idade_4092, variavel_anos_sexo_4094)
-    dados_limpos8344_forca_idade, dados_limpos8346_trab_idade = tratando_dados_dois(variavel_trab_idade_8344,  variavel_trab_idade_8346)
-    
-    dados_limpos_pop_raca = tratando_dados(variavel_pop_raca)
-    dados_limpos1641_trab_raca, dados_limpos4088_trab_raca, dados_limpos4090_trab_raca, dados_limpos4092_trab_raca, dados_limpos4094_trab_raca = tratando_dados_cinco(variavel_trab_raca_1641, variavel_trab_raca_4088, variavel_trab_raca_4090, variavel_trab_raca_4092, variavel_trab_raca_4094)
-    
-    dados_limpos_pop_alfab = tratando_dados(variavel_pop_alfab)
-    dados_limpos1641_trab_alfab,  dados_limpos4088_trab_alfab, dados_limpos4090_trab_alfab, dados_limpos4092_trab_alfab = tratando_dados_especial(variavel_trab_alfab_1641, variavel_trab_alfab_4088, variavel_trab_alfab_4090, variavel_trab_alfab_4092)
-    dados_limpos4094_trab_alfab = tratando_dados(variavel_trab_alfab_4094)
-    
-    return dados_limpos_pop_sexo, dados_limpos1641_trab_sexo,  dados_limpos4088_trab_sexo, dados_limpos4090_trab_sexo, dados_limpos4092_trab_sexo, dados_limpos4094_trab_sexo, \
-        dados_limpos8344_forca_sexo, dados_limpos8346_forca_sexo, dados_limpos_pop_idade, dados_limpos1641_anos_idade,  dados_limpos4088_anos_idade, dados_limpos4090_anos_idade, dados_limpos4092_anos_idade, dados_limpos4094_anos_idade, \
-            dados_limpos8344_forca_idade, dados_limpos8346_trab_idade, dados_limpos_pop_raca, dados_limpos1641_trab_raca, dados_limpos4088_trab_raca, dados_limpos4090_trab_raca, dados_limpos4092_trab_raca, dados_limpos4094_trab_raca, \
-                dados_limpos_pop_alfab, dados_limpos1641_trab_alfab, dados_limpos4088_trab_alfab, dados_limpos4090_trab_alfab, dados_limpos4092_trab_alfab, dados_limpos4094_trab_alfab
-                
 def gerando_dataframePOP(dados_limpos_pop_sexo, dados_limpos_pop_idade, dados_limpos_pop_raca, dados_limpos_pop_alfab):
-    dfpop_sexo = pd.DataFrame(dados_limpos_pop_sexo)
-    dfpop_idade = pd.DataFrame(dados_limpos_pop_idade)
-    dfpop_raca = pd.DataFrame(dados_limpos_pop_raca)
-    dfpop_alfab = pd.DataFrame(dados_limpos_pop_alfab)
-    
+    import pandas as pd
+
+    # Flatten se estiver em formato de múltiplas listas de dicionários
+    def flatten_lista_dict(lista):
+        return [item for sublist in lista for item in sublist] if isinstance(lista[0], list) else lista
+
+    dfpop_sexo = pd.DataFrame(flatten_lista_dict(dados_limpos_pop_sexo))
+    dfpop_idade = pd.DataFrame(flatten_lista_dict(dados_limpos_pop_idade))
+    dfpop_raca = pd.DataFrame(flatten_lista_dict(dados_limpos_pop_raca))
+    dfpop_alfab = pd.DataFrame(flatten_lista_dict(dados_limpos_pop_alfab))
+
     dfpop_idade['População Geral'] = None
     linhapop = slice(0, 1296)
     linhainfo = slice(0 , 7776)
+    
     valor_populacao = dfpop_idade.iloc[linhapop]['População'].tolist()
 
     for index_info, row_info in dfpop_idade.iloc[linhainfo].iterrows():
         dfpop_idade.at[index_info, 'População Geral'] = valor_populacao[index_info % len(valor_populacao)]
+
     return dfpop_sexo, dfpop_idade, dfpop_raca, dfpop_alfab
 
+
 def gerando_dataframe_cinco(dados_limpos1641,  dados_limpos4088, dados_limpos4090, dados_limpos4092, dados_limpos4094):
+    def flatten_lista_dict(lista):
+        return [item for sublist in lista for item in sublist] if isinstance(lista[0], list) else lista
     
-    df1641 = pd.DataFrame(dados_limpos1641)
-    df4088 = pd.DataFrame(dados_limpos4088)
-    df4090 = pd.DataFrame(dados_limpos4090)
-    df4092 = pd.DataFrame(dados_limpos4092)
-    df4094 = pd.DataFrame(dados_limpos4094)
+    df1641 = pd.DataFrame(flatten_lista_dict(dados_limpos1641))
+    df4088 = pd.DataFrame(flatten_lista_dict(dados_limpos4088))
+    df4090 = pd.DataFrame(flatten_lista_dict(dados_limpos4090))
+    df4092 = pd.DataFrame(flatten_lista_dict(dados_limpos4092))
+    df4094 = pd.DataFrame(flatten_lista_dict(dados_limpos4094))
     
     df = pd.merge(df1641, df4088, on=['id', 'local', 'Categoria','unidade', 'ano', 'Trimestre', 'AnoSedec'], how='inner')
     df = pd.merge(df, df4090, on=['id', 'local', 'Categoria', 'unidade', 'ano', 'Trimestre', 'AnoSedec'], how='inner')
@@ -444,8 +593,11 @@ def gerando_dataframe_cinco(dados_limpos1641,  dados_limpos4088, dados_limpos409
     return df
 
 def gerando_dataframe_tres(dados_limpos8344, dados_limpos8346):
-    df8344 = pd.DataFrame(dados_limpos8344)
-    df8346 = pd.DataFrame(dados_limpos8346)
+    def flatten_lista_dict(lista):
+        return [item for sublist in lista for item in sublist] if isinstance(lista[0], list) else lista
+    
+    df8344 = pd.DataFrame(flatten_lista_dict(dados_limpos8344))
+    df8346 = pd.DataFrame(flatten_lista_dict(dados_limpos8346))
     
     df = pd.merge(df8344, df8346, on=['id', 'local', 'Categoria','unidade', 'ano', 'Trimestre', 'AnoSedec'], how='inner')
     df.rename(columns={
@@ -459,7 +611,7 @@ def gerando_dataframe_tres(dados_limpos8344, dados_limpos8346):
 
     return df
 
-def gerando_dataframe_quatro(dados_limpos4088, dados_limpos4090, dados_limpos4092, dados_limpos4094):
+# def gerando_dataframe_quatro(dados_limpos4088, dados_limpos4090, dados_limpos4092, dados_limpos4094):
     df4088 = pd.DataFrame(dados_limpos4088)
     df4090 = pd.DataFrame(dados_limpos4090)
     df4092 = pd.DataFrame(dados_limpos4092)
@@ -478,10 +630,10 @@ def gerando_dataframe_quatro(dados_limpos4088, dados_limpos4090, dados_limpos409
     #     df[coluna] = df[coluna].astype(int)
     # return df
     
-dados_limpos_pop_sexo, dados_limpos1641_trab_sexo,  dados_limpos4088_trab_sexo, dados_limpos4090_trab_sexo, dados_limpos4092_trab_sexo, dados_limpos4094_trab_sexo, \
-    dados_limpos8344_forca_sexo, dados_limpos8346_forca_sexo, dados_limpos_pop_idade, dados_limpos1641_anos_idade, dados_limpos4088_anos_idade, dados_limpos4090_anos_idade, dados_limpos4092_anos_idade, dados_limpos4094_anos_idade, \
-         dados_limpos8344_forca_idade, dados_limpos8346_trab_idade, dados_limpos_pop_raca, dados_limpos1641_trab_raca, dados_limpos4088_trab_raca, dados_limpos4090_trab_raca, dados_limpos4092_trab_raca, dados_limpos4094_trab_raca,\
-             dados_limpos_pop_alfab, dados_limpos1641_trab_alfab, dados_limpos4088_trab_alfab, dados_limpos4090_trab_alfab, dados_limpos4092_trab_alfab, dados_limpos4094_trab_alfab  = executando_funcoes()
+dados_limpos_pop_sexo, dados_limpos1641_trab_sexo,  dados_limpos4088_trab_sexo, dados_limpos4090_trab_sexo, dados_limpos4092_trab_sexo, dados_limpos4094_trab_sexo, dados_limpos8344_forca_sexo, dados_limpos8346_forca_sexo = executando_funcoes("sexo")
+dados_limpos_pop_idade, dados_limpos1641_anos_idade, dados_limpos4088_anos_idade, dados_limpos4090_anos_idade, dados_limpos4092_anos_idade, dados_limpos4094_anos_idade, dados_limpos8344_forca_idade, dados_limpos8346_trab_idade = executando_funcoes("idade")
+dados_limpos_pop_raca, dados_limpos1641_trab_raca, dados_limpos4088_trab_raca, dados_limpos4090_trab_raca, dados_limpos4092_trab_raca, dados_limpos4094_trab_raca = executando_funcoes("raca")
+dados_limpos_pop_alfab, dados_limpos1641_trab_alfab, dados_limpos4088_trab_alfab, dados_limpos4090_trab_alfab, dados_limpos4092_trab_alfab, dados_limpos4094_trab_alfab  = executando_funcoes("alfab")
              
 dfpop_sexo, dfpop_idade, dfpop_raca, dfpop_alfab = gerando_dataframePOP(dados_limpos_pop_sexo, dados_limpos_pop_idade, dados_limpos_pop_raca, dados_limpos_pop_alfab)
 dftrab_sexo  = gerando_dataframe_cinco(dados_limpos1641_trab_sexo,  dados_limpos4088_trab_sexo, dados_limpos4090_trab_sexo, dados_limpos4092_trab_sexo, dados_limpos4094_trab_sexo)
@@ -494,14 +646,15 @@ dftrab_raca = gerando_dataframe_cinco(dados_limpos1641_trab_raca, dados_limpos40
 dftrab_alfab = gerando_dataframe_cinco(dados_limpos1641_trab_alfab, dados_limpos4088_trab_alfab, dados_limpos4090_trab_alfab, dados_limpos4092_trab_alfab, dados_limpos4094_trab_alfab)
 
 
-dfpop_sexo.to_excel('C:\\Users\\LucasFreitas\\Documents\\Lucas Freitas Arquivos\\DATAHUB\\DADOS\\PNAD\\Planilhas\\População SEXO estadual.xlsx', index=False)
-dftrab_sexo.to_excel('C:\\Users\\LucasFreitas\\Documents\\Lucas Freitas Arquivos\\DATAHUB\\DADOS\\PNAD\\Planilhas\\trabalho SEXO estadual.xlsx', index=False)
-dfforca_sexo.to_excel('C:\\Users\\LucasFreitas\\Documents\\Lucas Freitas Arquivos\\DATAHUB\\DADOS\\PNAD\\Planilhas\\Força trabalho SEXO estadual.xlsx', index=False)
+# dfpop_sexo.to_excel('C:\\Users\\LucasFreitas\\Documents\\Lucas Freitas Arquivos\\DATAHUB\\DADOS\\PNAD\\Planilhas\\População SEXO estadual.xlsx', index=False)
+# dftrab_sexo.to_excel('C:\\Users\\LucasFreitas\\Documents\\Lucas Freitas Arquivos\\DATAHUB\\DADOS\\PNAD\\Planilhas\\trabalho SEXO estadual.xlsx', index=False)
+# dfforca_sexo.to_excel('C:\\Users\\LucasFreitas\\Documents\\Lucas Freitas Arquivos\\DATAHUB\\DADOS\\PNAD\\Planilhas\\Força trabalho SEXO estadual.xlsx', index=False)
 
 
 #JUNTANDO DATAFRAMES
 df_sexo = pd.merge(dfpop_sexo, dftrab_sexo, on=['id', 'local', 'Categoria', 'unidade', 'ano', 'Trimestre', 'AnoSedec'], how='inner')
 df_sexo = pd.merge(df_sexo, dfforca_sexo, on=['id', 'local', 'Categoria', 'unidade', 'ano', 'Trimestre', 'AnoSedec'], how='inner')
+df_sexo['AnoSedec'] = pd.to_datetime(df_sexo['AnoSedec'], format='%d/%m/%Y')
 df_sexo.to_excel("C:\\Users\\LucasFreitas\\Documents\\Lucas Freitas Arquivos\\DATAHUB\\DADOS\\PNAD\\Planilhas Tratadas\\Tipo SEXO estadual.xlsx")
 
 
@@ -513,16 +666,19 @@ dfforca_idade.to_excel('C:\\Users\\LucasFreitas\\Documents\\Lucas Freitas Arquiv
 df_idade = pd.merge(dfpop_idade, dfanos_idade, on=['id', 'local', 'Categoria',  'unidade', 'ano', 'Trimestre', 'AnoSedec'], how='inner')
 df_idade = pd.merge(df_idade, dfforca_idade, on=['id', 'local', 'Categoria',  'unidade', 'ano', 'Trimestre', 'AnoSedec'], how='inner')
 df_idade.drop(columns=['População'], inplace=True)
+df_idade['AnoSedec'] = pd.to_datetime(df_idade['AnoSedec'], format='%d/%m/%Y')
 df_idade.to_excel("C:\\Users\\LucasFreitas\\Documents\\Lucas Freitas Arquivos\\DATAHUB\\DADOS\\PNAD\\Planilhas Tratadas\\Tipo IDADE estadual.xlsx")
 
 dfpop_raca.to_excel('C:\\Users\\LucasFreitas\\Documents\\Lucas Freitas Arquivos\\DATAHUB\\DADOS\\PNAD\\Planilhas\\População RACA estadual.xlsx', index=False)
 dftrab_raca.to_excel('C:\\Users\\LucasFreitas\\Documents\\Lucas Freitas Arquivos\\DATAHUB\\DADOS\\PNAD\\Planilhas\\Trabalho RACA estadual.xlsx', index=False)
 df_raca = pd.merge(dfpop_raca, dftrab_raca, on=['id', 'local', 'Categoria', 'unidade', 'ano', 'Trimestre', 'AnoSedec'], how='inner')
+df_raca['AnoSedec'] = pd.to_datetime(df_raca['AnoSedec'], format='%d/%m/%Y')
 df_raca.to_excel("C:\\Users\\LucasFreitas\\Documents\\Lucas Freitas Arquivos\\DATAHUB\\DADOS\\PNAD\\Planilhas Tratadas\\Tipo RAÇA estadual.xlsx")
 
 dfpop_alfab.to_excel('C:\\Users\\LucasFreitas\\Documents\\Lucas Freitas Arquivos\\DATAHUB\\DADOS\\PNAD\\Planilhas\\População Grau de instrução estadual.xlsx', index=False)
 dftrab_alfab.to_excel('C:\\Users\\LucasFreitas\\Documents\\Lucas Freitas Arquivos\\DATAHUB\\DADOS\\PNAD\\Planilhas\\Trabalha Grau de instrução estadual.xlsx', index=False)
 df_alfab = pd.merge(dfpop_alfab, dftrab_alfab, on=['id', 'local', 'Categoria', 'unidade', 'ano', 'Trimestre', 'AnoSedec'], how='inner')
+df_alfab['AnoSedec'] = pd.to_datetime(df_alfab['AnoSedec'], format='%d/%m/%Y')
 df_alfab.to_excel("C:\\Users\\LucasFreitas\\Documents\\Lucas Freitas Arquivos\\DATAHUB\\DADOS\\PNAD\\Planilhas Tratadas\\Tipo GRAU DE INSTRUÇÃO estadual.xlsx")
 
 
