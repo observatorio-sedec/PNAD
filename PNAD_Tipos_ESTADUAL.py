@@ -440,7 +440,7 @@ def executando_funcoes(tipo):
         dados_4092 = []
         dados_4094 = []
 
-    for ano in range(2015, ano_atual):
+    for ano in range(2015, ano_atual+ 1):
         for tri in range(1, 5):
 
             if tipo == 'sexo':
