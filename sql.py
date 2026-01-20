@@ -1,24 +1,23 @@
 import psycopg2
 from ETL_PNAD_ESTADUAL import dataframe1209, dataframe5918, dftrab_estadual, df_taxa
-from ETL_PNAD_NACIONAL import dfpop
-from conexão import conexao
+from conexao import conexao
 
 def executar_sql():
     cur = conexao.cursor()
     
     cur.execute('SET search_path TO pnad, public')
     
-    pnad_populacao_geral = \
-    '''
-    CREATE TABLE IF NOT EXISTS pnad.populacao_geral (
-        id_pnad_municipal SERIAL PRIMARY KEY,
-        id INTEGER,
-        local TEXT,
-        Categoria TEXT,
-        Populacao INTEGER,
-        Unidade TEXT,
-        Data DATE);
-    '''
+    # pnad_populacao_geral = \
+    # '''
+    # CREATE TABLE IF NOT EXISTS pnad.populacao_geral (
+    #     id_pnad_municipal SERIAL PRIMARY KEY,
+    #     id INTEGER,
+    #     local TEXT,
+    #     Categoria TEXT,
+    #     Populacao INTEGER,
+    #     Unidade TEXT,
+    #     Data DATE);
+    # '''
     
     pnad_populacao_estadual = \
     '''
@@ -82,17 +81,17 @@ def executar_sql():
     '''
 
 
-    cur.execute(pnad_populacao_geral)
+    # cur.execute(pnad_populacao_geral)
     cur.execute(pnad_populacao_estadual)
     cur.execute(pnad_populacao_apta_trabalhar)
     cur.execute(pnad_populacao_relaçao_forca)
     cur.execute(pnad_taxa)
 
-    verificando_existencia_pnad_populacao_geral = '''
-    SELECT 1
-    FROM information_schema.tables
-    WHERE table_schema= 'pnad' AND table_type='BASE TABLE' AND table_name='populacao_geral';
-    '''
+    # verificando_existencia_pnad_populacao_geral = '''
+    # SELECT 1
+    # FROM information_schema.tables
+    # WHERE table_schema= 'pnad' AND table_type='BASE TABLE' AND table_name='populacao_geral';
+    # '''
     verificando_existencia_pnad_populacao_estadual = '''
     SELECT 1
     FROM information_schema.tables
@@ -115,8 +114,8 @@ def executar_sql():
     '''
 
     # Execute as consultas de verificação
-    cur.execute(verificando_existencia_pnad_populacao_geral)
-    resultado_pnad_pop_geral = cur.fetchone()
+    # cur.execute(verificando_existencia_pnad_populacao_geral)
+    # resultado_pnad_pop_geral = cur.fetchone()
     
     cur.execute(verificando_existencia_pnad_populacao_estadual)
     resultado_pnad_pop_estadual= cur.fetchone()
@@ -130,11 +129,11 @@ def executar_sql():
     resultado_pnad_taxa= cur.fetchone()
     
     # Verifique se as tabelas existem e exclua, se necessário
-    if resultado_pnad_pop_geral[0] == 1:
-        dropando_tabela_populacao_geral = '''
-        TRUNCATE TABLE pnad.populacao_geral;
-        '''
-        cur.execute(dropando_tabela_populacao_geral)
+    # if resultado_pnad_pop_geral[0] == 1:
+    #     dropando_tabela_populacao_geral = '''
+    #     TRUNCATE TABLE pnad.populacao_geral;
+    #     '''
+    #     cur.execute(dropando_tabela_populacao_geral)
         
     if resultado_pnad_pop_estadual[0] == 1:
         dropando_tabela_populacao_estadual = '''
@@ -160,25 +159,6 @@ def executar_sql():
         '''
         cur.execute(dropando_tabela_taxa)
 
-    #INSERINDO DADOS
-    inserindo_pnad_geral = \
-    '''
-    INSERT INTO pnad.populacao_geral (id, local, categoria, populacao, unidade, data)
-    VALUES(%s,%s,%s,%s,%s,%s) 
-    '''
-    try:
-        for idx, i in dfpop.iterrows():
-            dados = (
-                i['id'],
-                i['local'],
-                i['Categoria'],
-                i['População'],
-                i['unidade'],
-                i['ano']
-            )
-            cur.execute(inserindo_pnad_geral, dados)
-    except psycopg2.Error as e:
-        print(f"Erro ao inserir dados geral: {e}")
         
     inserindo_pnad_estadual= \
     '''

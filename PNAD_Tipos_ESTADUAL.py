@@ -1,14 +1,12 @@
 from datetime import datetime
 import pandas as pd
 import requests as rq 
-import pprint
-import sqlite3
 from localidades import estadual
 import ssl
-from Google import Create_Service
-from googleapiclient.http import MediaFileUpload
 import openpyxl
 from ajustar_planilha import ajustar_colunas, ajustar_bordas
+# from Google import Create_Service
+# from googleapiclient.http import MediaFileUpload
 
 tabela5917 = 5917
 tabela4093 = 4093
@@ -453,7 +451,7 @@ def executando_funcoes(tipo):
                 v8344, v8346 = extrair_dados(api_forca_sexo, tabela6398)
 
                 if not vpop or not v1641 or not v4088 or not v4090 or not v4092 or not v4094 or not v8344 or not v8346:
-                    continue  # Se algum dado estiver vazio, pula para a próxima iteração.
+                    continue 
 
                 dados_pop.append(tratando_dados(vpop))
                 d1641, d4088, d4090, d4092, d4094 = tratando_dados_cinco(v1641, v4088, v4090, v4092, v4094)

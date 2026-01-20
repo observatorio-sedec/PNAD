@@ -1,6 +1,6 @@
 import psycopg2
 from PNAD_Tipos_ESTADUAL import df_alfab, df_idade, df_sexo, df_raca
-from conexão import conexao
+from conexao import conexao
 
 def executar_sql():
     cur = conexao.cursor()
