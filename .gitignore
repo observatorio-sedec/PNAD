@@ -2,3 +2,4 @@ conexao.py
 __pycache__
 Google.py
 .env
+.env.prod

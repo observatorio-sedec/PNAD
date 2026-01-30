@@ -653,11 +653,11 @@ dftrab_alfab = gerando_dataframe_cinco(dados_limpos1641_trab_alfab, dados_limpos
 df_sexo = pd.merge(dfpop_sexo, dftrab_sexo, on=['id', 'local', 'Categoria', 'unidade', 'ano', 'Trimestre', 'AnoSedec'], how='inner')
 df_sexo = pd.merge(df_sexo, dfforca_sexo, on=['id', 'local', 'Categoria', 'unidade', 'ano', 'Trimestre', 'AnoSedec'], how='inner')
 df_sexo['AnoSedec'] = pd.to_datetime(df_sexo['AnoSedec'], format='%d/%m/%Y')
-df_sexo.to_excel("C:\\Users\\LucasFreitas\\Documents\\Lucas Freitas Arquivos\\DATAHUB\\DADOS\\PNAD\\Planilhas Tratadas\\Tipo SEXO estadual.xlsx")
+# df_sexo.to_excel("C:\\Users\\LucasFreitas\\Documents\\Lucas Freitas Arquivos\\DATAHUB\\DADOS\\PNAD\\Planilhas Tratadas\\Tipo SEXO estadual.xlsx")
 
 
-dfpop_idade.to_excel('C:\\Users\\LucasFreitas\\Documents\\Lucas Freitas Arquivos\\DATAHUB\\DADOS\\PNAD\\Planilhas\\Populaçao IDADE estadual.xlsx', index=False)
-dfanos_idade.to_excel('C:\\Users\\LucasFreitas\\Documents\\Lucas Freitas Arquivos\\DATAHUB\\DADOS\\PNAD\\Planilhas\\Anos IDADE estadual.xlsx', index=False)
+# dfpop_idade.to_excel('C:\\Users\\LucasFreitas\\Documents\\Lucas Freitas Arquivos\\DATAHUB\\DADOS\\PNAD\\Planilhas\\Populaçao IDADE estadual.xlsx', index=False)
+# dfanos_idade.to_excel('C:\\Users\\LucasFreitas\\Documents\\Lucas Freitas Arquivos\\DATAHUB\\DADOS\\PNAD\\Planilhas\\Anos IDADE estadual.xlsx', index=False)
 
 
 dfforca_idade.to_excel('C:\\Users\\LucasFreitas\\Documents\\Lucas Freitas Arquivos\\DATAHUB\\DADOS\\PNAD\\Planilhas\\Força trabalho IDADE estadual.xlsx', index=False)
@@ -665,58 +665,21 @@ df_idade = pd.merge(dfpop_idade, dfanos_idade, on=['id', 'local', 'Categoria',  
 df_idade = pd.merge(df_idade, dfforca_idade, on=['id', 'local', 'Categoria',  'unidade', 'ano', 'Trimestre', 'AnoSedec'], how='inner')
 df_idade.drop(columns=['População'], inplace=True)
 df_idade['AnoSedec'] = pd.to_datetime(df_idade['AnoSedec'], format='%d/%m/%Y')
-df_idade.to_excel("C:\\Users\\LucasFreitas\\Documents\\Lucas Freitas Arquivos\\DATAHUB\\DADOS\\PNAD\\Planilhas Tratadas\\Tipo IDADE estadual.xlsx")
+# df_idade.to_excel("C:\\Users\\LucasFreitas\\Documents\\Lucas Freitas Arquivos\\DATAHUB\\DADOS\\PNAD\\Planilhas Tratadas\\Tipo IDADE estadual.xlsx")
 
 dfpop_raca.to_excel('C:\\Users\\LucasFreitas\\Documents\\Lucas Freitas Arquivos\\DATAHUB\\DADOS\\PNAD\\Planilhas\\População RACA estadual.xlsx', index=False)
 dftrab_raca.to_excel('C:\\Users\\LucasFreitas\\Documents\\Lucas Freitas Arquivos\\DATAHUB\\DADOS\\PNAD\\Planilhas\\Trabalho RACA estadual.xlsx', index=False)
 df_raca = pd.merge(dfpop_raca, dftrab_raca, on=['id', 'local', 'Categoria', 'unidade', 'ano', 'Trimestre', 'AnoSedec'], how='inner')
 df_raca['AnoSedec'] = pd.to_datetime(df_raca['AnoSedec'], format='%d/%m/%Y')
-df_raca.to_excel("C:\\Users\\LucasFreitas\\Documents\\Lucas Freitas Arquivos\\DATAHUB\\DADOS\\PNAD\\Planilhas Tratadas\\Tipo RAÇA estadual.xlsx")
+# df_raca.to_excel("C:\\Users\\LucasFreitas\\Documents\\Lucas Freitas Arquivos\\DATAHUB\\DADOS\\PNAD\\Planilhas Tratadas\\Tipo RAÇA estadual.xlsx")
 
 dfpop_alfab.to_excel('C:\\Users\\LucasFreitas\\Documents\\Lucas Freitas Arquivos\\DATAHUB\\DADOS\\PNAD\\Planilhas\\População Grau de instrução estadual.xlsx', index=False)
 dftrab_alfab.to_excel('C:\\Users\\LucasFreitas\\Documents\\Lucas Freitas Arquivos\\DATAHUB\\DADOS\\PNAD\\Planilhas\\Trabalha Grau de instrução estadual.xlsx', index=False)
 df_alfab = pd.merge(dfpop_alfab, dftrab_alfab, on=['id', 'local', 'Categoria', 'unidade', 'ano', 'Trimestre', 'AnoSedec'], how='inner')
 df_alfab['AnoSedec'] = pd.to_datetime(df_alfab['AnoSedec'], format='%d/%m/%Y')
-df_alfab.to_excel("C:\\Users\\LucasFreitas\\Documents\\Lucas Freitas Arquivos\\DATAHUB\\DADOS\\PNAD\\Planilhas Tratadas\\Tipo GRAU DE INSTRUÇÃO estadual.xlsx")
+# df_alfab.to_excel("C:\\Users\\LucasFreitas\\Documents\\Lucas Freitas Arquivos\\DATAHUB\\DADOS\\PNAD\\Planilhas Tratadas\\Tipo GRAU DE INSTRUÇÃO estadual.xlsx")
 
 
-
-planilha_principal = openpyxl.Workbook()
-
-wb_1209 = openpyxl.load_workbook('C:\\Users\\LucasFreitas\\Documents\\Lucas Freitas Arquivos\\DATAHUB\\DADOS\\PNAD\\Planilhas Tratadas\\Tipo SEXO estadual.xlsx')
-wb_5918 = openpyxl.load_workbook('C:\\Users\\LucasFreitas\\Documents\\Lucas Freitas Arquivos\\DATAHUB\\DADOS\\PNAD\\Planilhas Tratadas\\Tipo IDADE estadual.xlsx')
-wb_6463 = openpyxl.load_workbook('C:\\Users\\LucasFreitas\\Documents\\Lucas Freitas Arquivos\\DATAHUB\\DADOS\\PNAD\\Planilhas Tratadas\\Tipo RAÇA estadual.xlsx')
-wb_6482 = openpyxl.load_workbook('C:\\Users\\LucasFreitas\\Documents\\Lucas Freitas Arquivos\\DATAHUB\\DADOS\\PNAD\\Planilhas Tratadas\\Tipo GRAU DE INSTRUÇÃO estadual.xlsx')
-
-aba_1209 = planilha_principal.create_sheet("SEXO")
-aba_5918 = planilha_principal.create_sheet("IDADE")
-aba_6463 = planilha_principal.create_sheet("RAÇA")
-aba_6482 = planilha_principal.create_sheet("GRAU DE INSTRUÇÃO")
-
-
-for linha in wb_1209.active.iter_rows(values_only=True):
-    aba_1209.append(linha)
-
-for linha in wb_5918.active.iter_rows(values_only=True):
-    aba_5918.append(linha)
-    
-for linha in wb_6463.active.iter_rows(values_only=True):
-    aba_6463.append(linha)
-    
-for linha in wb_6482.active.iter_rows(values_only=True):
-    aba_6482.append(linha)
-    
-for aba in planilha_principal.sheetnames:
-    if aba not in ["SEXO", "IDADE", "RAÇA", "GRAU DE INSTRUÇÃO"]:
-        del planilha_principal[aba]
-        
-ajustar_bordas(planilha_principal)
-
-lista_aba = [aba_1209, aba_5918, aba_6463, aba_6482]
-for abas in lista_aba:
-    ajustar_colunas(abas)
-    
-planilha_principal.save("C:\\Users\\LucasFreitas\\Documents\\Lucas Freitas Arquivos\\DATAHUB\\DADOS\\PNAD\\Planilhas Tratadas\\PNAD TIPOS ESTADUAL.xlsx")   
 
 if __name__ == '__main__':
     from sql_Tipos import executar_sql 

@@ -7,6 +7,7 @@ from localidades import estadual
 import ssl
 import openpyxl
 from ajustar_planilha import ajustar_colunas, ajustar_bordas
+import os
 
 tabela1209 = 1209
 tabela5918 = 5918
@@ -324,43 +325,7 @@ dados_limpos_8520 = executando_estadual()
 df_taxa = pd.DataFrame(dados_limpos_8520)
 dataframe5918['AnoSedec'] = pd.to_datetime(dataframe5918['AnoSedec'], format='%d/%m/%Y')
 
-
-df_taxa.to_excel('C:\\Users\\LucasFreitas\\Documents\\Lucas Freitas Arquivos\\DATAHUB\\DADOS\\PNAD\\Planilhas\\taxa.xlsx', index=False)
-dataframe1209.to_excel('C:\\Users\\LucasFreitas\\Documents\\Lucas Freitas Arquivos\\DATAHUB\\DADOS\\PNAD\\Planilhas\\População ESTADUAL.xlsx', index=False)
-dataframe5918.to_excel('C:\\Users\\LucasFreitas\\Documents\\Lucas Freitas Arquivos\\DATAHUB\\DADOS\\PNAD\\Planilhas\\Idade ESTADUAL.xlsx', index=False)
-dftrab_estadual.to_excel('C:\\Users\\LucasFreitas\\Documents\\Lucas Freitas Arquivos\\DATAHUB\\DADOS\\PNAD\\Planilhas\\Trabalho ESTADUAL.xlsx', index=False)
-
-
-planilha_principal = openpyxl.Workbook()
-
-wb_1209 = openpyxl.load_workbook('C:\\Users\\LucasFreitas\\Documents\\Lucas Freitas Arquivos\\DATAHUB\\DADOS\\PNAD\\Planilhas\\População ESTADUAL.xlsx')
-wb_5918 = openpyxl.load_workbook('C:\\Users\\LucasFreitas\\Documents\\Lucas Freitas Arquivos\\DATAHUB\\DADOS\\PNAD\\Planilhas\\Idade ESTADUAL.xlsx')
-wb_trab = openpyxl.load_workbook('C:\\Users\\LucasFreitas\\Documents\\Lucas Freitas Arquivos\\DATAHUB\\DADOS\\PNAD\\Planilhas\\Trabalho ESTADUAL.xlsx')
-
-aba_1209 = planilha_principal.create_sheet("População Total")
-aba_5918 = planilha_principal.create_sheet("Pessoas aptam a trabalhar")
-aba_trab = planilha_principal.create_sheet("Trabalho")
-
-for linha in wb_1209.active.iter_rows(values_only=True):
-    aba_1209.append(linha)
-
-for linha in wb_5918.active.iter_rows(values_only=True):
-    aba_5918.append(linha)
-    
-for linha in wb_trab.active.iter_rows(values_only=True):
-    aba_trab.append(linha)
-    
-for aba in planilha_principal.sheetnames:
-    if aba not in ["População Total", "Pessoas aptam a trabalhar", "Trabalho"]:
-        del planilha_principal[aba]
-        
-ajustar_bordas(planilha_principal)
-
-lista_aba = [aba_1209, aba_5918, aba_trab]
-for abas in lista_aba:
-    ajustar_colunas(abas)
-    
-planilha_principal.save("C:\\Users\\LucasFreitas\\Documents\\Lucas Freitas Arquivos\\DATAHUB\\DADOS\\PNAD\\Planilhas Tratadas\\PNAD ESTADUAL.xlsx")   
+print(df_taxa.head())
 
 if __name__ == '__main__':
     from sql import executar_sql 

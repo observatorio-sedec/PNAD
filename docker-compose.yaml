@@ -1,6 +1,6 @@
 services:
   postgres:
-    image: postgres:16
+    image: postgres:18.1
     container_name: postgres_pnad
     restart: always
     environment:
@@ -8,11 +8,11 @@ services:
       POSTGRES_USER: ${DB_USER}
       POSTGRES_PASSWORD: ${DB_PASSWORD}
     ports:
-      - "5432:5432"
+      - "${DB_PORT}:5432"
     volumes:
       - pgdata:/var/lib/postgresql/data
     networks:
-      - scraper_net
+      - pnad_scraper_net
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U ${DB_USER} -d ${DB_NAME}"]
       interval: 5s
@@ -21,33 +21,29 @@ services:
 
   etl_pnad:
     build: .
-    image: etl_pnad:latest
+    # image: etl_pnad:latest
     container_name: scraper_pnad
-    env_file:
-      - .env
     command: ["python", "ETL_PNAD_ESTADUAL.py"]
     depends_on:
       postgres:
         condition: service_healthy
     networks:
-      - scraper_net
+      - pnad_scraper_net
 
   etl_tipos:
     build: .
-    image: etl_tipos:latest
+    # image: etl_tipos:latest
     container_name: scraper_tipos
-    env_file:
-      - .env
     command: ["python", "PNAD_Tipos_ESTADUAL.py"]
     depends_on:
       postgres:
         condition: service_healthy
     networks:
-      - scraper_net
+      - pnad_scraper_net
 
 volumes:
   pgdata:
 
 networks:
-  scraper_net:
+  pnad_scraper_net:
     driver: bridge
